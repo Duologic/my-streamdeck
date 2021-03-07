@@ -29,15 +29,6 @@ const (
 	iconMediaStop  = "assets/media-playback-stop.png"
 )
 
-func createButton(initImage string) *buttons.ImageFileButton {
-	button, err := buttons.NewImageFileButton(initImage)
-	if err != nil {
-		panic(err)
-	}
-	button.RegisterUpdateHandler(func(streamdeck.Button) {})
-	return button
-}
-
 func PlayerButtons(sd *streamdeck.StreamDeck) playerButtons {
 	m := playerButtons{
 		sd:            sd,
@@ -63,6 +54,12 @@ func (m *playerButtons) spotifyHandler(button streamdeck.Button) {
 }
 
 func (m *playerButtons) playHandler(button streamdeck.Button) {
+	m.Update()
+	if !m.HasPlayer {
+		cmd := exec.Command("/usr/bin/spotify")
+		cmd.Start()
+		m.Update()
+	}
 	command("play-pause")
 	m.Update()
 }
@@ -84,16 +81,32 @@ func (m *playerButtons) Update() {
 	}
 	if strings.Contains(out.String(), "Playing") {
 		m.HasPlayer = true
-		m.PlayButton.SetFilePath(iconMediaPause)
+		if err := m.PlayButton.SetFilePath(iconMediaPause); err != nil {
+			log.Println(err)
+		}
 		return
 	}
 	if strings.Contains(out.String(), "Paused") {
 		m.HasPlayer = true
-		m.PlayButton.SetFilePath(iconMediaPlay)
+		if err := m.PlayButton.SetFilePath(iconMediaPlay); err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+	if strings.Contains(out.String(), "Stopped") {
+		m.HasPlayer = true
+		if err := m.PlayButton.SetFilePath(iconMediaStop); err != nil {
+			log.Println(err)
+		}
+
 		return
 	}
 	m.HasPlayer = false
-	m.PlayButton.SetFilePath(iconMediaStop)
+	if err := m.PlayButton.SetFilePath(iconSpotify); err != nil {
+		log.Println(err)
+	}
+
 }
 
 func command(setting string) {

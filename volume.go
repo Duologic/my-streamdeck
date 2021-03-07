@@ -86,9 +86,13 @@ func (m *volumeButtons) SetVolume(value int) {
 	}
 	//m.VolumeButton.SetFilePath(icon)
 	if m.Mute {
-		m.MuteButton.SetFilePath(iconVolumeMuted)
+		if err := m.MuteButton.SetFilePath(iconVolumeMuted); err != nil {
+			log.Println(err)
+		}
 	} else {
-		m.MuteButton.SetFilePath(icon)
+		if err := m.MuteButton.SetFilePath(icon); err != nil {
+			log.Println(err)
+		}
 	}
 }
 

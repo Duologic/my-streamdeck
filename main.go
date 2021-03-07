@@ -7,6 +7,7 @@ import (
 	"time"
 
 	streamdeck "github.com/magicmonkey/go-streamdeck"
+	"github.com/magicmonkey/go-streamdeck/buttons"
 	_ "github.com/magicmonkey/go-streamdeck/devices"
 )
 
@@ -24,6 +25,15 @@ func WaitForCtrlC() {
 	end_waiter.Wait()
 }
 
+func createButton(initImage string) *buttons.ImageFileButton {
+	button, err := buttons.NewImageFileButton(initImage)
+	if err != nil {
+		panic(err)
+	}
+	button.RegisterUpdateHandler(func(streamdeck.Button) {})
+	return button
+}
+
 func main() {
 	rawsd, err := streamdeck.Open()
 	if err != nil {
@@ -38,7 +48,7 @@ func main() {
 	}
 	sd.SetBrightness(50)
 
-	mute := MicButtons(sd)
+	mic := MicButtons(sd)
 	volume := VolumeButtons(sd)
 	player := PlayerButtons(sd)
 
@@ -47,20 +57,25 @@ func main() {
 		defer ticker.Stop()
 
 		for range ticker.C {
-			mute.Update()
+			mic.Update()
 			volume.Update()
 			player.Update()
 		}
 	}()
 
-	sd.AddButton(0, mute.MuteButton)
-	sd.AddButton(1, mute.VolumeButton)
+	sd.AddButton(0, mic.MuteButton)
+	sd.AddButton(1, mic.VolumeButton)
 	sd.AddButton(2, volume.VolumeButton)
 	sd.AddButton(3, volume.MuteButton)
-	sd.AddButton(4, player.SpotifyButton)
 	sd.AddButton(5, player.PrevButton)
 	sd.AddButton(6, player.PlayButton)
 	sd.AddButton(7, player.NextButton)
+
+	URL := os.Getenv("TEAM_MEET")
+	if URL != "" {
+		fwj := MeetButton(sd, URL)
+		sd.AddButton(4, fwj.Button)
+	}
 
 	WaitForCtrlC()
 }

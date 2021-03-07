@@ -97,11 +97,18 @@ func (m *micButtons) SetStatus(status int) {
 		icon = iconMicLow
 		m.Status = 3
 	}
-	m.VolumeButton.SetFilePath(icon)
+	if err := m.VolumeButton.SetFilePath(icon); err != nil {
+		log.Println(err)
+	}
 	if m.Muted {
-		m.MuteButton.SetFilePath(iconMicMuted)
+		if err := m.MuteButton.SetFilePath(iconMicMuted); err != nil {
+			log.Println(err)
+		}
+
 	} else {
-		m.MuteButton.SetFilePath(icon)
+		if err := m.MuteButton.SetFilePath(icon); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
